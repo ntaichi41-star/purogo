@@ -39,18 +39,12 @@
     position: relative; width: 30px; height: 30px; border-radius: 8px;
     overflow: hidden; flex: 0 0 auto;
   }
-  .sample .sa { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: var(--g); }
-  .sample .sp { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: var(--r); }
+  .sample i { position: absolute; left: 0; width: 100%; height: 50%; }
+  .sample .sa { top: 0; background: var(--g); }
+  .sample .sp { bottom: 0; background: var(--r); }
   .sample span { position: absolute; width: 100%; text-align: center; font-size: 8px;
                  font-weight: 800; color: #fff; z-index: 2; }
   .sample .t1 { top: 1px; } .sample .t2 { bottom: 1px; }
-  .cta {
-    display: block; margin-top: 24px; text-align: center;
-    background: var(--ink); color: #fff; text-decoration: none;
-    font-size: 14.5px; font-weight: 800; padding: 15px 0; border-radius: 14px;
-  }
-  .cta small { display: block; font-size: 11px; font-weight: 600; opacity: .7; margin-top: 2px; }
-  .cta:active { transform: scale(.98); }
   .month {
     background: var(--card); border-radius: 18px;
     padding: 18px 14px 14px; margin-top: 14px;
@@ -80,19 +74,21 @@
   }
   .day.past { background: #e4e3df; }
   .day.past .num { color: #b8b7b2; text-shadow: none; }
-  .star {
-    position: absolute; top: 1px; right: 3px; z-index: 2;
-    font-size: 9px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
-  }
   .note { margin-top: 22px; font-size: 12.5px; line-height: 2; color: #55554f; }
-  .note b { color: var(--ink); }
+  .cta {
+    display: block; margin-top: 22px; text-align: center;
+    background: var(--ink); color: #fff; text-decoration: none;
+    font-size: 14.5px; font-weight: 800; padding: 15px 0; border-radius: 14px;
+  }
+  .cta small { display: block; font-size: 11px; font-weight: 600; opacity: .7; margin-top: 2px; }
+  .cta:active { transform: scale(.98); }
   .updated { margin-top: 14px; font-size: 11px; color: #b0afab; text-align: center; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>おごりカレンダー</h1>
-  <p class="lead">時間までは決めてない、決めるとダルいので。日ごとの「おごれそう度」だけ置いておくから、これを眺めてから、いつものやつで申し込んでくれ。各マスの<b>上が昼、下が夜</b>。</p>
+  <p class="lead">日ごとの、おごれそう度。時間までは決めてないので、これを見てから申し込んでください。</p>
 
   <div class="legend">
     <span style="background:var(--g)">空いてそう</span>
@@ -102,23 +98,21 @@
   </div>
   <div class="howto">
     <span class="sample"><span class="t1">昼</span><span class="t2">夜</span><i class="sa"></i><i class="sp"></i></span>
-    <span>1マス=1日。上半分が昼、下半分が夜。<br>★が付いてる日は狙い目。</span>
+    <span>1マス=1日。上が昼、下が夜。</span>
   </div>
 
   <div id="calendar"></div>
 
   <p class="note">
-    「空いてそう」であって「空いてる」ではない。生き物なので。<br>
-    <b>★は平日の昼。</b>おれが一番楽なので、優先で通りやすい。狙うならここ。<br>
-    <b>8/16以降はまだ未定。</b>基本は要問い合わせで、オプション(追加料金)ならワンチャン。<br>
-    ここは予約フォームではないので、申し込みの手順はいつもどおり。
+    あくまで目安。<br>
+    グレー(要問い合わせ)の期間は、オプション(追加料金)なら相談できます。
   </p>
-  <a class="cta" href="https://pro-ogo.com/" target="_blank" rel="noopener">奢る！<small>申し込みはいつものやつから</small></a>
-  <p class="updated">最終更新: 2026-07-14</p>
+  <a class="cta" href="https://pro-ogo.com/n/n5d98d7867ec5" target="_blank" rel="noopener">奢る！<small>申し込みはこちら</small></a>
+  <p class="updated">空き状況の最終更新: <span id="built"></span></p>
 </div>
 
 <script>
-// ===== データ(Airtable「おごりカレンダー」から生成。手動 > 自動 で解決済み。[昼,夜]) =====
+// ===== データ(Airtableから生成。手動 > 自動 で解決済み。[昼,夜]) =====
 const STATUS = {
   "2026-07-14":["r","r"],"2026-07-15":["y","r"],"2026-07-16":["y","y"],"2026-07-17":["r","r"],
   "2026-07-18":["r","y"],"2026-07-19":["y","y"],"2026-07-20":["y","y"],"2026-07-21":["y","r"],
@@ -134,15 +128,44 @@ const STATUS = {
   "2026-08-24":["o","o"],"2026-08-25":["o","o"],"2026-08-26":["o","o"],"2026-08-27":["o","o"],
   "2026-08-28":["o","o"],"2026-08-29":["r","r"],"2026-08-30":["o","o"],"2026-08-31":["o","o"]
 };
-const TODAY = "2026-07-14";
+const DEADLINE = "2026-08-15";   // 通常受付はこの日まで(Airtable「設定」由来)
+const NEAR_DAYS = 14;            // 直近この日数は🟢を🟡に落とす
+const BUILT = "2026-07-15";      // 空き状況データの生成日
 // =====================================================================
 
 const DOW = ["日","月","火","水","木","金","土"];
-const cal = document.getElementById("calendar");
-const months = [...new Set(Object.keys(STATUS).map(d => d.slice(0,7)))].sort();
+const pad = n => String(n).padStart(2, "0");
+const key = d => d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
 
-months.forEach(ym => {
-  const [y, m] = ym.split("-").map(Number);
+const now = new Date();
+const today = key(now);
+const nearEnd = key(new Date(now.getFullYear(), now.getMonth(), now.getDate() + NEAR_DAYS - 1));
+// 表示範囲: 今月1日 〜 (受付期限 or 今日+30日 の遅いほう)の月末
+const lastData = Object.keys(STATUS).sort().pop() || today;
+let endStr = DEADLINE > today ? DEADLINE : key(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30));
+if (lastData > endStr) endStr = lastData;
+document.getElementById("built").textContent = BUILT;
+
+// その日の表示コードを決める(開いた日基準の自動ルール)
+function resolve(k) {
+  let s = STATUS[k] ? [...STATUS[k]] : ["o","o"];       // データ無し=要問い合わせ
+  return s.map(c => {
+    if (k > DEADLINE && (c === "g" || c === "y")) return "o"; // 期限より先は要問い合わせ
+    if (k <= nearEnd && c === "g") return "y";                // 直近は空きでもワンチャン表示
+    return c;
+  });
+}
+
+const cal = document.getElementById("calendar");
+const months = [];
+let cur = new Date(now.getFullYear(), now.getMonth(), 1);
+const end = new Date(+endStr.slice(0,4), +endStr.slice(5,7)-1, 1);
+while (cur <= end) {
+  months.push([cur.getFullYear(), cur.getMonth()+1]);
+  cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+}
+
+months.forEach(([y, m]) => {
   const first = new Date(y, m-1, 1);
   const days = new Date(y, m, 0).getDate();
   const sec = document.createElement("section");
@@ -162,21 +185,17 @@ months.forEach(ym => {
     grid.appendChild(el);
   }
   for (let d=1; d<=days; d++) {
-    const key = `${ym}-${String(d).padStart(2,"0")}`;
-    const s = STATUS[key];
+    const k = `${y}-${pad(m)}-${pad(d)}`;
     const el = document.createElement("div");
-    const dow = new Date(y, m-1, d).getDay();
-    if (!s || key < TODAY) {
+    if (k < today) {
       el.className = "day past";
       el.innerHTML = `<span class="num">${d}</span>`;
     } else {
+      const s = resolve(k);
       el.className = "day";
-      const star = (dow >= 1 && dow <= 5 && (s[0] === "g" || s[0] === "y"))
-        ? '<span class="star">★</span>' : "";
       el.innerHTML =
         `<span class="half am ${s[0]}"></span>` +
         `<span class="half pm ${s[1]}"></span>` +
-        star +
         `<span class="num">${d}</span>`;
     }
     grid.appendChild(el);
